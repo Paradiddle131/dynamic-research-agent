@@ -2,6 +2,7 @@ import logging
 from typing import Type, Dict, Any
 from pydantic import BaseModel
 from scrapegraphai.graphs import SearchGraph
+from scrapegraphai.utils import prettify_exec_info
 from google.api_core import exceptions as google_exceptions
 
 from app.core.config import settings
@@ -21,7 +22,7 @@ def run_search_graph(query: str, dynamic_schema_model: Type[BaseModel]) -> Dict[
             "model": f"{llm_provider}/{settings.SCRAPEGRAPH_EXTRACTION_MODEL}",
             "api_key": settings.GEMINI_API_KEY,
             "temperature": 0.1,
-            "max_tokens": settings.SCRAPEGRAPH_MAX_TOKENS,
+            "model_tokens": settings.SCRAPEGRAPH_MAX_TOKENS,
         },
         "scraper": {
             "scraper_instance": "PlaywrightScraper",
@@ -29,6 +30,7 @@ def run_search_graph(query: str, dynamic_schema_model: Type[BaseModel]) -> Dict[
         },
         "verbose": True,
         "max_results": settings.SCRAPER_MAX_RESULTS,
+        # "batchsize": settings.SCRAPEGRAPH_BATCHSIZE, # no way to pass this into node_config until GraphIteratorNode configuration
     }
 
     try:
@@ -41,6 +43,13 @@ def run_search_graph(query: str, dynamic_schema_model: Type[BaseModel]) -> Dict[
         logger.info(f"Running SearchGraph with Gemini model: {settings.SCRAPEGRAPH_EXTRACTION_MODEL}...")
         result = search_graph.run()
         logger.info("SearchGraph execution finished.")
+
+        logger.info("--- Graph Execution Information ---")
+        try:
+            graph_exec_info = search_graph.get_execution_info()
+            logger.info(prettify_exec_info(graph_exec_info))
+        except Exception as e:
+            logger.info(f"Could not retrieve execution info: {e}")
 
         if isinstance(result, dict):
             return result

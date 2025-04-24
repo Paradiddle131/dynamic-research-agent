@@ -41,11 +41,11 @@ async def perform_research(
     logger.info(f"Received research request for query: '{query}'")
 
     try:
-        logger.info("Generating dynamic schema via Langchain Gemini...")
+        logger.info("Generating dynamic schema.")
         schema_definition = await run_in_threadpool(generate_dynamic_schema, query=query)
         logger.info(f"Using schema definition: {schema_definition.get('model_name', 'N/A')}")
 
-        logger.info("Creating dynamic Pydantic model...")
+        logger.info("Creating dynamic Pydantic model.")
         DynamicModel = create_dynamic_model(schema_definition)
 
         logger.info("Executing SearchGraph with Gemini...")

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     SCRAPER_MAX_RESULTS: int = 5
     SCRAPER_HEADLESS: bool = True
     SCRAPEGRAPH_MAX_TOKENS: int = 8192
+    SCRAPEGRAPH_BATCHSIZE: int = 16
 
     model_config = SettingsConfigDict(env_file=".env", extra='ignore')
 
