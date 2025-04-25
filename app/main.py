@@ -1,4 +1,7 @@
 import logging
+import nest_asyncio
+nest_asyncio.apply()
+
 from fastapi import FastAPI
 from app.core.config import settings
 from app.api.v1.endpoints import research
@@ -27,4 +30,4 @@ async def read_root():
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting server with Uvicorn directly...")
-    uvicorn.run(app, host=settings.SERVER_HOST, port=settings.SERVER_PORT)
+    uvicorn.run(app, host=settings.SERVER_HOST, port=settings.SERVER_PORT, loop="asyncio")

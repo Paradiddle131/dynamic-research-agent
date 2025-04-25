@@ -42,7 +42,7 @@ DEFAULT_SCHEMA_DEFINITION = {
         {"name": "summary", "type": "string", "description": "A concise summary of the key findings from the search results."},
         {"name": "key_points", "type": "array", "items": "string", "description": "Bulleted list of important facts, figures, or insights discovered."},
         {"name": "entities", "type": "array", "items": "string", "description": "List of significant people, companies, products, or concepts mentioned."},
-        {"name": "source_urls", "type": "array", "items": "string", "description": "List of URLs from which the information was primarily derived."}
+        {"name": "sources", "type": "array", "items": "string", "description": "List of source URLs from which the information was primarily derived."}
     ]
 }
 
@@ -82,9 +82,23 @@ def generate_dynamic_schema(query: str) -> Dict[str, Any]:
 
         response_schema: GeneratedSchema = structured_llm.invoke(messages)
 
+        sources_field_definition = {
+            "name": "sources",
+            "type": "array",
+            "items": "string",
+            "description": "List of source URLs from which the information was primarily derived."
+        }
+
         if response_schema and response_schema.fields:
             logger.info(f"Langchain Gemini generated a custom schema: {response_schema.model_name}")
-            return response_schema.model_dump()
+            generated_schema_dict = response_schema.model_dump()
+            
+            # Ensure 'sources' field is present in the definition, otherwise mergeAnswers node might fail
+            field_names = [field['name'] for field in generated_schema_dict.get('fields', [])]
+            if "sources" not in field_names:
+                logger.info("Adding mandatory 'sources' field to the generated schema.")
+                generated_schema_dict.setdefault('fields', []).append(sources_field_definition)
+            return generated_schema_dict
         else:
             logger.info("Query did not specify a structure or LLM indicated no specific structure needed. Using the default schema.")
             return DEFAULT_SCHEMA_DEFINITION
